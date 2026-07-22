@@ -276,6 +276,40 @@ document.addEventListener("DOMContentLoaded", function () {
     footer.parentNode.insertBefore(divider, footer);
   }
 
+  // ---- Share this page (native share sheet on mobile, copy-link fallback) ----
+  var socialRow = document.querySelector(".social-row");
+  if (socialRow) {
+    var shareBtn = document.createElement("button");
+    shareBtn.setAttribute("aria-label", "Share this page");
+    shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2"/></svg>';
+    socialRow.appendChild(shareBtn);
+
+    var toast = document.createElement("div");
+    toast.className = "share-toast";
+    toast.textContent = "Link copied";
+    document.body.appendChild(toast);
+    var showToast = function (msg) {
+      toast.textContent = msg;
+      toast.classList.add("is-visible");
+      setTimeout(function () { toast.classList.remove("is-visible"); }, 1800);
+    };
+
+    shareBtn.addEventListener("click", function () {
+      var shareData = { title: document.title, url: window.location.href };
+      if (navigator.share) {
+        navigator.share(shareData).catch(function () {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareData.url).then(function () {
+          showToast("Link copied");
+        }).catch(function () {
+          window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareData.url), "_blank", "noopener");
+        });
+      } else {
+        window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareData.url), "_blank", "noopener");
+      }
+    });
+  }
+
   // ---- One-time homepage load intro ----
   var showIntro = isHome && !reduceMotion && !sessionStorage.getItem("iesIntroShown");
   if (showIntro) {
